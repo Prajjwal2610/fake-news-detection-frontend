@@ -45,20 +45,17 @@
     </style>
     <script>
         window.onerror = function(msg, url, lineNo, columnNo, error) {
-            console.error('Window Error:', msg, url, lineNo, columnNo, error);
-            // Ignore benign errors
-            if (msg.includes("ResizeObserver loop limit exceeded")) return false;
-            
+            console.error('Core Error:', msg, url, lineNo, columnNo, error);
             const root = document.getElementById('root');
             if (root) {
-                const realError = error ? (error.stack || error.message) : "Unknown or Cross-Origin Error";
-                root.innerHTML = `<div style="color:red; padding:40px; text-align:center;">
-                    <h2 style="font-size: 2rem;">Something went wrong!</h2>
-                    <p style="opacity: 0.7;">Error: ${msg}</p>
-                    <p style="opacity: 0.5; font-size: 0.8rem; overflow:auto;">Details: ${realError}</p>
-                    <p style="font-size: 0.8rem;">Line: ${lineNo}, Col: ${columnNo}</p>
-                    <button onclick="window.location.reload()" style="margin-top:20px; background:#6366f1; color:white; padding:10px 20px; border-radius:10px; border:none; cursor:pointer;">Refresh Page</button>
-                    <p style="margin-top: 20px; font-size: 0.8rem; opacity: 0.5;">If using file://, make sure the backend is at http://localhost:8000</p>
+                const stackTrace = error && error.stack ? error.stack : "N/A";
+                root.innerHTML = `<div style="background:#fef2f2; color:#991b1b; padding:40px; border-radius:30px; text-align:center; max-width:600px; margin:40px auto; border: 2px solid #fee2e2;">
+                    <h2 class="text-3xl font-bold mb-4">🚀 Technical Issue Encountered</h2>
+                    <p class="mb-4">Internal Error: ${msg}</p>
+                    <div style="font-family:monospace; font-size:0.75rem; background:rgba(0,0,0,0.05); padding:10px; border-radius:10px; text-align:left; max-height:200px; overflow:auto; margin-bottom: 20px;">
+                        ${stackTrace}
+                    </div>
+                    <button onclick="window.location.reload()" style="background:#6366f1; color:white; padding:12px 24px; border-radius:12px; font-weight:bold;">Try Reloading Page</button>
                 </div>`;
             }
             return false;
@@ -144,9 +141,11 @@
             const [stats, setStats] = useState({ REAL: 0, FAKE: 0 });
             
             const currentHost = window.location.hostname;
+            // NEW: Use the user-provided backend URL since they are on separate repos now
+            const PROD_BACKEND_URL = 'https://fake-news-detection-backend-2bed.onrender.com';
             const API_URL = (currentHost === 'localhost' || currentHost === '127.0.0.1' || currentHost === '') 
                             ? 'http://localhost:8000' 
-                            : window.location.origin;
+                            : PROD_BACKEND_URL;
 
             // Dark Mode Logic
             useEffect(() => {
