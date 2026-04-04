@@ -91,31 +91,32 @@
 
         const LucideIcon = ({ name, className = "" }) => {
             const iconRef = useRef(null);
+            const pascalName = useMemo(() => name.split('-').map(part => part.charAt(0).toUpperCase() + (part.length > 1 ? part.slice(1) : '')).join(''), [name]);
+
             useEffect(() => {
                 if (iconRef.current && window.lucide) {
-                    // Create icons only for this element to avoid React DOM conflict
                     window.lucide.createIcons({
                         attrs: { class: className },
                         nameAttr: 'data-lucide',
-                        icons: { [name]: window.lucide.icons[name] }
+                        icons: window.lucide.icons
                     }, iconRef.current);
                 }
-            }, [name, className]);
-            return <i ref={iconRef} data-lucide={name} className={className}></i>;
+            }, [pascalName, className]);
+            return <i ref={iconRef} data-lucide={pascalName} className={className}></i>;
         };
 
         // --- COMPONENTS ---
 
         const Navbar = ({ user, setUser, darkMode, setDarkMode, setView }) => {
             return (
-                <nav className="fixed top-0 w-full z-50 glass px-6 py-4 flex justify-between items-center">
+                <nav className="fixed top-0 w-full z-50 glass px-6 py-4 flex justify-between items-center transition-colors duration-300 text-slate-900 dark:text-white">
                     <div className="flex items-center gap-2 cursor-pointer" onClick={() => window.location.reload()}>
                         <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-primary/30">T</div>
                         <span className="text-2xl font-bold tracking-tight">Truth<span className="gradient-text">Guard</span></span>
                     </div>
                     <div className="flex items-center gap-6">
-                        <button onClick={() => setDarkMode(!darkMode)} className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 transition-all">
-                            {darkMode ? <LucideIcon name="sun" className="w-5 h-5" /> : <LucideIcon name="moon" className="w-5 h-5" />}
+                        <button onClick={() => setDarkMode(!darkMode)} className="p-2.5 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-800 transition-all bg-gray-100/50 dark:bg-gray-800/50 border border-black/5 dark:border-white/10 group">
+                            {darkMode ? <LucideIcon name="sun" className="w-5 h-5 text-yellow-500 group-hover:rotate-45 transition-transform" /> : <LucideIcon name="moon" className="w-5 h-5 text-indigo-400 group-hover:-rotate-12 transition-transform" />}
                         </button>
                         {user ? (
                             <div className="flex items-center gap-4">
@@ -546,7 +547,7 @@
             };
 
             return (
-                <div className="min-h-screen pb-20">
+                <div className="min-h-screen pb-20 bg-gray-50 text-slate-900 dark:bg-dark dark:text-white transition-colors duration-300">
                     <Navbar user={user} setUser={setUser} darkMode={darkMode} setDarkMode={setDarkMode} setView={setView} />
                     <AnimatePresence mode="wait">
                         {view === 'intro' && <IntroView key="intro" setView={setView} />}
