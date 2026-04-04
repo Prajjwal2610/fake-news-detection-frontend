@@ -243,6 +243,7 @@
         const App = () => {
             const [view, setView] = useState('intro'); // intro, home, dashboard, login, result
             const [user, setUser] = useState(null);
+            const [authError, setAuthError] = useState(null);
             const [darkMode, setDarkMode] = useState(true);
             const [loading, setLoading] = useState(false);
             const [input, setInput] = useState('');
@@ -315,15 +316,33 @@
             };
 
             const handleAuth = async (isLogin, data) => {
+                setAuthError(null);
+                if (!data.username || !data.password || (!isLogin && !data.email)) {
+                    setAuthError("Please fill in all fields");
+                    return;
+                }
+                setLoading(true);
                 try {
                     const endpoint = isLogin ? '/auth/login' : '/auth/register';
+                    console.log(`Attempting ${isLogin ? 'login' : 'register'} at ${API_URL}${endpoint}`);
                     const res = await axios.post(`${API_URL}${endpoint}`, data);
-                    localStorage.setItem('token', res.data.access_token);
-                    localStorage.setItem('username', data.username);
-                    setUser({ username: data.username, token: res.data.access_token });
-                    setView('home');
+                    
+                    if (res.data && res.data.access_token) {
+                        localStorage.setItem('token', res.data.access_token);
+                        localStorage.setItem('username', data.username);
+                        setUser({ username: data.username, token: res.data.access_token });
+                        setAuthError(null);
+                        setView('home');
+                    } else {
+                        throw new Error("Invalid response from server");
+                    }
                 } catch (err) {
-                    alert(err.response?.data?.detail || "Authentication failed");
+                    console.error("Auth Error:", err);
+                    const errorMsg = err.response?.data?.detail || err.message || "Authentication failed";
+                    setAuthError(errorMsg);
+                    setUser(null);
+                } finally {
+                    setLoading(false);
                 }
             };
 
@@ -332,35 +351,53 @@
             const LoginView = () => {
                 const [isLogin, setIsLogin] = useState(true);
                 const [formData, setFormData] = useState({ username: '', email: '', password: '' });
+
+                const toggleMode = () => {
+                    setIsLogin(!isLogin);
+                    setFormData({ username: '', email: '', password: '' }); 
+                    setAuthError(null);
+                };
+
                 return (
                     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-md mx-auto mt-32 p-8 glass rounded-3xl shadow-2xl">
                         <h2 className="text-3xl font-bold mb-2 tracking-tight">{isLogin ? 'Welcome Back' : 'Create Account'}</h2>
-                        <p className="text-sm opacity-60 mb-8">{isLogin ? 'Login to continue checking news' : 'Join TruthGuard to track your news verification history'}</p>
+                        <p className="text-sm opacity-60 mb-6">{isLogin ? 'Login to continue checking news' : 'Join TruthGuard to track your news verification history'}</p>
+                        
+                        {authError && (
+                            <div className="bg-red-500/10 border border-red-500/20 text-red-500 p-4 rounded-xl text-sm mb-6 flex items-center gap-3">
+                                <LucideIcon name="alert-circle" className="w-5 h-5" />
+                                {authError}
+                            </div>
+                        )}
+
                         <form onSubmit={(e) => { e.preventDefault(); handleAuth(isLogin, formData); }} className="space-y-4">
                             <div className="space-y-2">
                                 <label className="text-xs font-semibold uppercase px-1">Username</label>
-                                <input required type="text" className="w-full bg-gray-100 dark:bg-gray-800 p-4 rounded-xl focus:ring-2 ring-primary outline-none transition-all" 
+                                <input required type="text" value={formData.username}
+                                    className="w-full bg-gray-100 dark:bg-gray-800 p-4 rounded-xl focus:ring-2 ring-primary outline-none transition-all" 
                                     onChange={e => setFormData({...formData, username: e.target.value})} />
                             </div>
                             {!isLogin && (
                                 <div className="space-y-2">
                                     <label className="text-xs font-semibold uppercase px-1">Email</label>
-                                    <input required type="email" className="w-full bg-gray-100 dark:bg-gray-800 p-4 rounded-xl focus:ring-2 ring-primary outline-none transition-all" 
+                                    <input required type="email" value={formData.email}
+                                        className="w-full bg-gray-100 dark:bg-gray-800 p-4 rounded-xl focus:ring-2 ring-primary outline-none transition-all" 
                                         onChange={e => setFormData({...formData, email: e.target.value})} />
                                 </div>
                             )}
                             <div className="space-y-2">
                                 <label className="text-xs font-semibold uppercase px-1">Password</label>
-                                <input required type="password" className="w-full bg-gray-100 dark:bg-gray-800 p-4 rounded-xl focus:ring-2 ring-primary outline-none transition-all" 
+                                <input required type="password" value={formData.password}
+                                    className="w-full bg-gray-100 dark:bg-gray-800 p-4 rounded-xl focus:ring-2 ring-primary outline-none transition-all" 
                                     onChange={e => setFormData({...formData, password: e.target.value})} />
                             </div>
-                            <button className="w-full bg-primary py-4 rounded-xl text-white font-bold shadow-lg shadow-primary/40 hover:scale-[1.02] active:scale-[0.98] transition-all mt-4">
-                                {isLogin ? 'Login' : 'Register'}
+                            <button disabled={loading} className={`w-full py-4 rounded-xl text-white font-bold shadow-lg transition-all mt-4 ${loading ? 'bg-gray-400' : 'bg-primary shadow-primary/40 hover:scale-[1.02] active:scale-[0.98]'}`}>
+                                {loading ? 'Processing...' : (isLogin ? 'Login' : 'Register')}
                             </button>
                         </form>
                         <p className="text-center text-sm mt-6">
                             {isLogin ? "Don't have an account?" : "Already have an account?"}
-                            <button onClick={() => setIsLogin(!isLogin)} className="text-primary font-bold ml-1 hover:underline">
+                            <button onClick={toggleMode} className="text-primary font-bold ml-1 hover:underline">
                                 {isLogin ? 'Sign Up' : 'Login'}
                             </button>
                         </p>
