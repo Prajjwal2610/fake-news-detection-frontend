@@ -42,6 +42,20 @@
         .loader { border-top-color: #6366f1; animation: spinner 1.5s linear infinite; }
         @keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         #root:empty::before { content: '🚀 Initializing TruthGuard AI...'; display: flex; align-items: center; justify-content: center; height: 100vh; font-weight: bold; color: #6366f1; }
+        
+        /* New Animations */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.8s ease-out forwards; }
+        .delay-100 { animation-delay: 0.1s; }
+        .delay-200 { animation-delay: 0.2s; }
+        .delay-300 { animation-delay: 0.3s; }
+        
+        .floating { animation: floating 3s ease-in-out infinite; }
+        @keyframes floating { 
+            0% { transform: translateY(0px); } 
+            50% { transform: translateY(-10px); } 
+            100% { transform: translateY(0px); } 
+        }
     </style>
     <script>
         window.onerror = function(msg, url, lineNo, columnNo, error) {
@@ -92,7 +106,7 @@
 
         // --- COMPONENTS ---
 
-        const Navbar = ({ user, setUser, darkMode, setDarkMode }) => {
+        const Navbar = ({ user, setUser, darkMode, setDarkMode, setView }) => {
             return (
                 <nav className="fixed top-0 w-full z-50 glass px-6 py-4 flex justify-between items-center">
                     <div className="flex items-center gap-2 cursor-pointer" onClick={() => window.location.reload()}>
@@ -109,7 +123,12 @@
                                 <button onClick={() => { localStorage.clear(); window.location.reload(); }} className="text-sm font-semibold text-red-500 hover:underline">Logout</button>
                             </div>
                         ) : (
-                            <LucideIcon name="user" className="w-5 h-5 opacity-70" />
+                            <button 
+                                onClick={() => setView('login')}
+                                className="bg-primary px-5 py-2 rounded-xl text-white text-sm font-bold shadow-lg shadow-primary/30 hover:scale-105 active:scale-95 transition-all"
+                            >
+                                Login
+                            </button>
                         )}
                     </div>
                 </nav>
@@ -129,8 +148,99 @@
 
         // --- MAIN APP ---
 
+        const IntroView = ({ setView }) => {
+            return (
+                <div className="max-w-6xl mx-auto mt-32 px-6">
+                    <div className="flex flex-col lg:flex-row items-center gap-16 mb-24">
+                        <motion.div initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} className="flex-1 text-center lg:text-left">
+                            <span className="bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-bold border border-primary/20 mb-6 inline-block">Next-Gen Fact Checking</span>
+                            <h1 className="text-6xl md:text-7xl font-bold mb-8 leading-tight tracking-tight">
+                                Empowering Truth in the <span className="gradient-text">Digital Age</span>
+                            </h1>
+                            <p className="text-xl md:text-2xl opacity-60 mb-10 max-w-2xl leading-relaxed">
+                                TruthGuard uses state-of-the-art AI to analyze news content and source credibility, helping you navigate the complex information landscape with confidence.
+                            </p>
+                            <div className="flex flex-col sm:flex-row gap-6 justify-center lg:justify-start">
+                                <button 
+                                    onClick={() => setView('login')}
+                                    className="bg-primary px-10 py-5 rounded-2xl text-white font-bold text-lg shadow-2xl shadow-primary/40 hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-3"
+                                >
+                                    Get Started Free <LucideIcon name="arrow-right" className="w-6 h-6" />
+                                </button>
+                                <button className="glass px-10 py-5 rounded-2xl font-bold text-lg hover:bg-white/10 transition-all">
+                                    How it Works
+                                </button>
+                            </div>
+                        </motion.div>
+                        <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} className="flex-1 relative">
+                            <div className="absolute -inset-4 bg-primary/20 blur-3xl rounded-full floating"></div>
+                            <div className="glass p-8 rounded-[3rem] shadow-2xl relative z-10 border border-white/20">
+                                <div className="space-y-6">
+                                    <div className="flex items-center gap-4 bg-white/5 p-6 rounded-3xl">
+                                        <div className="w-12 h-12 bg-green-500/20 rounded-2xl flex items-center justify-center text-green-500">
+                                            <LucideIcon name="shield-check" className="w-6 h-6" />
+                                        </div>
+                                        <div>
+                                            <p className="font-bold">Real-time Analysis</p>
+                                            <p className="text-sm opacity-50">98.4% Confidence Score</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-4 bg-white/5 p-6 rounded-3xl ml-8">
+                                        <div className="w-12 h-12 bg-purple-500/20 rounded-2xl flex items-center justify-center text-purple-500">
+                                            <LucideIcon name="database" className="w-6 h-6" />
+                                        </div>
+                                        <div>
+                                            <p className="font-bold">Verified Sources</p>
+                                            <p className="text-sm opacity-50">12M+ Data points matched</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-4 bg-white/5 p-6 rounded-3xl">
+                                        <div className="w-12 h-12 bg-blue-500/20 rounded-2xl flex items-center justify-center text-blue-500">
+                                            <LucideIcon name="globe" className="w-6 h-6" />
+                                        </div>
+                                        <div>
+                                            <p className="font-bold">Multi-language</p>
+                                            <p className="text-sm opacity-50">Hindi & English Support</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-24">
+                        {[
+                            { icon: 'zap', title: 'Lightning Fast', desc: 'Get results in under 0.5 seconds with our optimized NLP models.' },
+                            { icon: 'brain', title: 'Deep Learning', desc: 'Advanced neural networks trained on historical fake news data.' },
+                            { icon: 'bar-chart-3', title: 'Detailed Explanation', desc: 'Don\'t just take our word for it—see the key factors behind every verdict.' }
+                        ].map((feature, i) => (
+                            <div key={i} className="glass p-10 rounded-[3rem] hover:scale-[1.03] transition-all duration-300">
+                                <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center text-primary mb-6">
+                                    <LucideIcon name={feature.icon} className="w-8 h-8" />
+                                </div>
+                                <h3 className="text-2xl font-bold mb-4">{feature.title}</h3>
+                                <p className="opacity-60 leading-relaxed">{feature.desc}</p>
+                            </div>
+                        ))}
+                    </div>
+
+                    <div className="glass p-12 rounded-[3.5rem] text-center bg-gradient-to-br from-primary/5 to-secondary/5 border border-primary/20 relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 blur-[100px] -mr-32 -mt-32"></div>
+                        <h2 className="text-4xl font-bold mb-6">Ready to defend the truth?</h2>
+                        <p className="text-lg opacity-60 mb-10 max-w-xl mx-auto">Join thousands of users who trust TruthGuard for their daily news verification needs.</p>
+                        <button 
+                            onClick={() => setView('login')}
+                            className="bg-black dark:bg-white text-white dark:text-black px-12 py-5 rounded-2xl font-bold text-lg hover:scale-105 transition-all"
+                        >
+                            Create Your Account
+                        </button>
+                    </div>
+                </div>
+            );
+        };
+
         const App = () => {
-            const [view, setView] = useState('home'); // home, dashboard, login, result
+            const [view, setView] = useState('intro'); // intro, home, dashboard, login, result
             const [user, setUser] = useState(null);
             const [darkMode, setDarkMode] = useState(true);
             const [loading, setLoading] = useState(false);
@@ -160,8 +270,7 @@
                 if (token && username) {
                     setUser({ username, token });
                     fetchHistory(token);
-                } else {
-                    setView('login');
+                    setView('home');
                 }
             }, []);
 
@@ -438,8 +547,9 @@
 
             return (
                 <div className="min-h-screen pb-20">
-                    <Navbar user={user} setUser={setUser} darkMode={darkMode} setDarkMode={setDarkMode} />
+                    <Navbar user={user} setUser={setUser} darkMode={darkMode} setDarkMode={setDarkMode} setView={setView} />
                     <AnimatePresence mode="wait">
+                        {view === 'intro' && <IntroView key="intro" setView={setView} />}
                         {view === 'login' && <LoginView key="login" />}
                         {view === 'home' && <HomeView key="home" />}
                         {view === 'result' && <ResultView key="result" />}
