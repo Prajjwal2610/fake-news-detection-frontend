@@ -121,7 +121,7 @@
                         {user ? (
                             <div className="flex items-center gap-4">
                                 <span className="text-sm font-medium opacity-70">Hi, {user.username}</span>
-                                <button onClick={() => { localStorage.clear(); window.location.reload(); }} className="text-sm font-semibold text-red-500 hover:underline">Logout</button>
+                                <button onClick={() => { localStorage.removeItem('token'); localStorage.removeItem('username'); setUser(null); setView('intro'); }} className="text-sm font-semibold text-red-500 hover:underline">Logout</button>
                             </div>
                         ) : (
                             <button 
@@ -328,9 +328,9 @@
                     const res = await axios.post(`${API_URL}${endpoint}`, data);
                     
                     if (res.data && res.data.access_token) {
-                        localStorage.setItem('token', res.data.access_token);
                         localStorage.setItem('username', data.username);
                         setUser({ username: data.username, token: res.data.access_token });
+                        fetchHistory(res.data.access_token);
                         setAuthError(null);
                         setView('home');
                     } else {
