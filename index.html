@@ -577,7 +577,12 @@
                     }
                 } catch (err) {
                     console.error("Auth Error:", err);
-                    const errorMsg = err.response?.data?.detail || err.message || "Authentication failed";
+                    let errorMsg = err.response?.data?.detail || err.message || "Authentication failed";
+                    
+                    if (err.message === "Network Error") {
+                        errorMsg = "Network Error: The server might be waking up (Render free tier) or it's unreachable. Please wait 30 seconds and try again.";
+                    }
+                    
                     setAuthError(errorMsg);
                     setUser(null);
                 } finally {
