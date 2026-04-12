@@ -564,7 +564,11 @@
                 try {
                     const endpoint = isLogin ? '/auth/login' : '/auth/register';
                     console.log(`Attempting ${isLogin ? 'login' : 'register'} at ${API_URL}${endpoint}`);
-                    const res = await axios.post(`${API_URL}${endpoint}`, data);
+                    
+                    // Simple health check before auth if it's the first attempt or network feels unstable
+                    const res = await axios.post(`${API_URL}${endpoint}`, data, {
+                        timeout: 10000 // 10s timeout
+                    });
                     
                     if (res.data && res.data.access_token) {
                         localStorage.setItem('username', data.username);
@@ -580,7 +584,23 @@
                     let errorMsg = err.response?.data?.detail || err.message || "Authentication failed";
                     
                     if (err.message === "Network Error") {
-                        errorMsg = "Network Error: The server might be waking up (Render free tier) or it's unreachable. Please wait 30 seconds and try again.";
+                        errorMsg = (
+                            <div className="space-y-2">
+                                <p className="font-bold">🌐 Connection Issue Detected</p>
+                                <p className="text-xs opacity-80">This usually happens because:</p>
+                                <ul className="text-xs list-disc list-inside opacity-70">
+                                    <li>The backend (Render) is waking up from sleep (may take 1 minute).</li>
+                                    <li>The backend has a CORS configuration issue.</li>
+                                    <li>The database is currently unreachable.</li>
+                                </ul>
+                                <button 
+                                    onClick={() => window.open(`${API_URL}/health`, '_blank')}
+                                    className="mt-2 text-[10px] bg-white/10 px-2 py-1 rounded hover:bg-white/20 transition-all font-mono"
+                                >
+                                    Check Backend Status Directly ↗
+                                </button>
+                            </div>
+                        );
                     }
                     
                     setAuthError(errorMsg);
@@ -589,6 +609,7 @@
                     setLoading(false);
                 }
             };
+
 
 
 
